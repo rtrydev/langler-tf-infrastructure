@@ -1,4 +1,5 @@
 locals {
+  # tflint-ignore: terraform_unused_declarations # consumed once the planned modules below land
   project = "langler"
 }
 

@@ -14,8 +14,18 @@ All AWS infrastructure lives here, following the myangler-web pattern: Next.js s
 
 ```sh
 terraform init
-terraform plan
-terraform apply
+terraform plan -out=tfplan
 ```
 
-State is local for now; migrate to an S3 backend before CI runs terraform. Deploys are expected to run via a `deploy.sh` that fail-fasts on `aws sts get-caller-identity`, applies terraform, builds the frontend, syncs to S3 with split cache headers, and invalidates CloudFront.
+A human reviews the plan and applies it; automation never runs `terraform apply`.
+
+## State
+
+State lives in the S3 bucket defined in `global/` (`langler-terraform-state`), with native S3 lockfile locking (`use_lockfile = true` — no DynamoDB lock table). `backend.tf` configures the root module's backend (key `root/terraform.tfstate`). See `global/README.md` for the one-time bootstrap: the bucket itself is created from `global/` with local state before any backend can point at it.
+
+## Tooling
+
+- `terraform fmt -recursive` / `terraform validate`
+- `tflint --recursive` (config in `.tflint.hcl`)
+- `checkov -d .`
+- `terraform test` (unit tests under `*/tests/`, plan-only with mocked providers) Deploys are expected to run via a `deploy.sh` that fail-fasts on `aws sts get-caller-identity`, applies terraform, builds the frontend, syncs to S3 with split cache headers, and invalidates CloudFront.
