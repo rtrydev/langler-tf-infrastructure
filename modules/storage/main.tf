@@ -25,4 +25,9 @@ resource "aws_dynamodb_table" "application" {
   point_in_time_recovery {
     enabled = false
   }
+
+  ttl {
+    attribute_name = "expiresAtUnix"
+    enabled        = true
+  }
 }

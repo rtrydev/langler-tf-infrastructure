@@ -19,14 +19,15 @@ module "storage" {
 module "api" {
   source = "../../modules/api"
 
-  name                = local.name
-  lambda_package_path = var.lambda_package_path
-  jwt_issuer          = module.auth.issuer
-  jwt_audience        = module.auth.client_id
-  allowed_origin      = local.frontend_origin
-  table_name          = module.storage.table_name
-  table_arn           = module.storage.table_arn
-  stage               = "prod"
+  name                    = local.name
+  lambda_package_path     = var.lambda_package_path
+  authorizer_package_path = var.authorizer_package_path
+  jwt_issuer              = module.auth.issuer
+  jwt_audience            = module.auth.client_id
+  allowed_origin          = local.frontend_origin
+  table_name              = module.storage.table_name
+  table_arn               = module.storage.table_arn
+  stage                   = "prod"
 }
 
 module "reference_assets" {

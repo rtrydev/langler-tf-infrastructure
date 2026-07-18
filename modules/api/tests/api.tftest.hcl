@@ -1,14 +1,15 @@
 mock_provider "aws" {}
 
 variables {
-  name                = "langler-prod"
-  lambda_package_path = "../../../langler-backend/build/api.zip"
-  jwt_issuer          = "https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_example"
-  jwt_audience        = "exampleclientid"
-  allowed_origin      = "https://langler.example.com"
-  table_name          = "langler-prod"
-  table_arn           = "arn:aws:dynamodb:eu-central-1:111111111111:table/langler-prod"
-  stage               = "prod"
+  name                    = "langler-prod"
+  lambda_package_path     = "../../../langler-backend/build/api.zip"
+  authorizer_package_path = "../../../langler-backend/build/authorizer.zip"
+  jwt_issuer              = "https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_example"
+  jwt_audience            = "exampleclientid"
+  allowed_origin          = "https://langler.example.com"
+  table_name              = "langler-prod"
+  table_arn               = "arn:aws:dynamodb:eu-central-1:111111111111:table/langler-prod"
+  stage                   = "prod"
 }
 
 run "plans_authenticated_arm64_api" {
@@ -17,6 +18,11 @@ run "plans_authenticated_arm64_api" {
   assert {
     condition     = aws_lambda_function.api.runtime == "provided.al2023" && contains(aws_lambda_function.api.architectures, "arm64")
     error_message = "The Lambda must use the arm64 AL2023 OS-only runtime."
+  }
+
+  assert {
+    condition     = aws_lambda_function.authorizer.runtime == "provided.al2023" && contains(aws_lambda_function.authorizer.architectures, "arm64")
+    error_message = "The machine authorizer must use the arm64 AL2023 OS-only runtime."
   }
 
   assert {
@@ -39,7 +45,7 @@ run "plans_reference_routes_with_scoped_permissions" {
   command = plan
 
   assert {
-    condition     = keys(aws_apigatewayv2_route.authenticated) == ["hello", "lesson_results_create", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "reference_grammar", "reference_scripts", "reference_vocab"]
+    condition     = keys(aws_apigatewayv2_route.authenticated) == ["agent_tokens_create", "agent_tokens_list", "agent_tokens_revoke", "hello", "lesson_results_create", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "reference_grammar", "reference_scripts", "reference_vocab"]
     error_message = "The route map must contain the hello route, the three reference routes, and the lesson routes."
   }
 
@@ -83,7 +89,7 @@ run "plans_lesson_routes_and_write_access" {
   }
 
   assert {
-    condition     = local.routes["lessons_get"].permission_path == "GET/lessons/*" && local.routes["lessons_delete"].permission_path == "DELETE/lessons/*" && local.routes["lesson_results_create"].permission_path == "POST/lessons/*/results"
+    condition     = local.human_routes["lessons_get"].permission_path == "GET/lessons/*" && local.human_routes["lessons_delete"].permission_path == "DELETE/lessons/*" && local.human_routes["lesson_results_create"].permission_path == "POST/lessons/*/results"
     error_message = "Parameterised lesson routes must use wildcard invoke permissions that match request paths."
   }
 
@@ -96,4 +102,24 @@ run "plans_lesson_routes_and_write_access" {
     condition     = !strcontains(aws_iam_role_policy.lambda_lesson_store.policy, "dynamodb:Scan") && !strcontains(aws_iam_role_policy.lambda_lesson_store.policy, "*\"")
     error_message = "The lesson store policy must stay scoped to item operations on the application table."
   }
+}
+
+run "plans_separate_uncached_machine_authorizer" {
+  command = plan
+
+  assert {
+    condition     = keys(aws_apigatewayv2_route.machine) == ["lessons_import", "reference_grammar", "reference_scripts", "reference_vocab"]
+    error_message = "The machine API must expose only reference reads and lesson import."
+  }
+
+  assert {
+    condition     = alltrue([for route in aws_apigatewayv2_route.machine : route.authorization_type == "CUSTOM"])
+    error_message = "Every machine route must use the machine-token Lambda authorizer."
+  }
+
+  assert {
+    condition     = aws_apigatewayv2_authorizer.machine.authorizer_result_ttl_in_seconds == 0 && aws_apigatewayv2_authorizer.machine.enable_simple_responses
+    error_message = "Machine authorization must be uncached so revocation takes effect immediately."
+  }
+
 }

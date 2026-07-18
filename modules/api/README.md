@@ -1,6 +1,6 @@
 # api
 
-Deploys an arm64 Go Lambda on the `provided.al2023` OS-only runtime behind an API Gateway HTTP API. Every route (`GET /hello`, `GET /reference/vocab`, `GET /reference/grammar`, `GET /reference/scripts`, `POST /lessons/prompt`, `POST /lessons/import`, `GET /lessons`, `GET /lessons/{id}`, `DELETE /lessons/{id}`, `POST /lessons/{id}/results`) requires a Cognito access token carrying the SDK authentication scope. The Lambda receives the application DynamoDB table name and may `Query` it plus perform the item operations lesson and result storage need (`GetItem`, `PutItem`, `DeleteItem`, `BatchGetItem`); it can never `Scan`. CORS is configured only on the HTTP API and permits one frontend origin with the GET, POST, and DELETE methods.
+Deploys the arm64 Go API and machine-authorizer Lambdas on the `provided.al2023` OS-only runtime. Browser routes use a Cognito JWT authorizer. A separate machine HTTP API exposes only reference reads and lesson import through an uncached Lambda authorizer, so token revocation takes effect on the next call. DynamoDB access is limited to the item, query, transaction, and counter operations needed by lessons and agent tokens; neither function can scan the table. CORS is configured only on the browser API and permits one frontend origin.
 
 ## Inputs
 
@@ -8,6 +8,7 @@ Deploys an arm64 Go Lambda on the `provided.al2023` OS-only runtime behind an AP
 |---|---|---|
 | `name` | `string` | Resource name prefix |
 | `lambda_package_path` | `string` | Zip containing `bootstrap` |
+| `authorizer_package_path` | `string` | Zip containing the machine-authorizer `bootstrap` |
 | `jwt_issuer` | `string` | Cognito JWT issuer |
 | `jwt_audience` | `string` | Cognito client ID |
 | `allowed_origin` | `string` | Browser origin allowed by CORS |
@@ -20,5 +21,7 @@ Deploys an arm64 Go Lambda on the `provided.al2023` OS-only runtime behind an AP
 | Name | Description |
 |---|---|
 | `api_url` | HTTP API base URL |
+| `machine_api_url` | Machine-token HTTP API base URL |
 | `hello_url` | Authenticated hello endpoint |
 | `lambda_name` | Lambda function name |
+| `authorizer_lambda_name` | Machine-authorizer Lambda function name |

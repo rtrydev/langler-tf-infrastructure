@@ -3,6 +3,11 @@ output "api_url" {
   value       = module.api.api_url
 }
 
+output "machine_api_url" {
+  description = "Machine-token API base URL"
+  value       = module.api.machine_api_url
+}
+
 output "cloudfront_distribution_id" {
   description = "CloudFront distribution ID used by the deploy script"
   value       = module.frontend.distribution_id
