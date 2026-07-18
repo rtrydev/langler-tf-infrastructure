@@ -68,6 +68,7 @@ DISTRIBUTION_ID="$(terraform -chdir="$TF_DIR" output -raw cloudfront_distributio
 export NEXT_PUBLIC_API_URL="$(terraform -chdir="$TF_DIR" output -raw api_url)"
 export NEXT_PUBLIC_COGNITO_CLIENT_ID="$(terraform -chdir="$TF_DIR" output -raw cognito_client_id)"
 export NEXT_PUBLIC_AWS_REGION="eu-central-1"
+export NEXT_PUBLIC_REFERENCE_ASSETS_URL="https://$(terraform -chdir="$TF_DIR" output -raw reference_assets_cdn_domain)"
 
 npm --prefix "$UI_ROOT" run build
 

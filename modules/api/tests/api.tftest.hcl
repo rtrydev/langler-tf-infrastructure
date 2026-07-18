@@ -39,8 +39,8 @@ run "plans_reference_routes_with_scoped_permissions" {
   command = plan
 
   assert {
-    condition     = keys(aws_apigatewayv2_route.authenticated) == ["hello", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "reference_grammar", "reference_scripts", "reference_vocab"]
-    error_message = "The route map must contain the hello route, the three reference routes, and the five lesson routes."
+    condition     = keys(aws_apigatewayv2_route.authenticated) == ["hello", "lesson_results_create", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "reference_grammar", "reference_scripts", "reference_vocab"]
+    error_message = "The route map must contain the hello route, the three reference routes, and the lesson routes."
   }
 
   assert {
@@ -78,7 +78,12 @@ run "plans_lesson_routes_and_write_access" {
   }
 
   assert {
-    condition     = local.routes["lessons_get"].permission_path == "GET/lessons/*" && local.routes["lessons_delete"].permission_path == "DELETE/lessons/*"
+    condition     = aws_apigatewayv2_route.authenticated["lesson_results_create"].route_key == "POST /lessons/{id}/results"
+    error_message = "Lesson results must be stored through POST /lessons/{id}/results."
+  }
+
+  assert {
+    condition     = local.routes["lessons_get"].permission_path == "GET/lessons/*" && local.routes["lessons_delete"].permission_path == "DELETE/lessons/*" && local.routes["lesson_results_create"].permission_path == "POST/lessons/*/results"
     error_message = "Parameterised lesson routes must use wildcard invoke permissions that match request paths."
   }
 
