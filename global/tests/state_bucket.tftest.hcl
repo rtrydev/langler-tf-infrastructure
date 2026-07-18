@@ -41,6 +41,30 @@ run "rejects_invalid_bucket_name" {
   ]
 }
 
+run "rejects_adjacent_dots_in_bucket_name" {
+  command = plan
+
+  variables {
+    state_bucket_name = "langler..terraform-state"
+  }
+
+  expect_failures = [
+    var.state_bucket_name,
+  ]
+}
+
+run "rejects_ip_address_bucket_name" {
+  command = plan
+
+  variables {
+    state_bucket_name = "192.168.0.1"
+  }
+
+  expect_failures = [
+    var.state_bucket_name,
+  ]
+}
+
 run "rejects_invalid_region" {
   command = plan
 

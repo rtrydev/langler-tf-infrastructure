@@ -6,7 +6,6 @@ resource "aws_s3_bucket" "terraform_state" {
   bucket = var.state_bucket_name
 
   lifecycle {
-    # Losing this bucket means losing all Terraform state.
     prevent_destroy = true
   }
 }
@@ -26,7 +25,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" 
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
     }
-    bucket_key_enabled = true
   }
 }
 
@@ -85,8 +83,4 @@ data "aws_iam_policy_document" "terraform_state" {
 resource "aws_s3_bucket_policy" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
   policy = data.aws_iam_policy_document.terraform_state.json
-
-  # The public access block must exist before a bucket policy is evaluated,
-  # otherwise a policy PUT can race the account-level public-policy check.
-  depends_on = [aws_s3_bucket_public_access_block.terraform_state]
 }

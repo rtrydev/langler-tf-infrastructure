@@ -12,9 +12,9 @@ Most Terraform material you have seen predates the patterns below. Before writin
 
 When unsure whether an API is current, say so and check the provider docs rather than guessing from memory. A confidently wrong resource argument costs more here than an admission of uncertainty.
 
-# <repo name>
+# langler-tf-infrastructure
 
-Terraform configuration for <org>'s <cloud> infrastructure. This repo is the source of truth: anything that exists in the account and is not described here is either a mistake or an explicitly documented exception.
+Terraform configuration for Langler's AWS infrastructure. This repo is the source of truth: anything that exists in the account and is not described here is either a mistake or an explicitly documented exception.
 
 ## Commands
 

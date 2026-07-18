@@ -1,5 +1,4 @@
 terraform {
-  # ~> 1.11: the S3 backend's native lockfile locking (use_lockfile) needs 1.11+.
   required_version = "~> 1.11"
 
   required_providers {

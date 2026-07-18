@@ -15,7 +15,11 @@ variable "state_bucket_name" {
   default     = "langler-terraform-state"
 
   validation {
-    condition     = can(regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", var.state_bucket_name))
-    error_message = "state_bucket_name must be a valid S3 bucket name: 3-63 characters, lowercase letters, digits, dots, and hyphens."
+    condition = (
+      can(regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", var.state_bucket_name)) &&
+      !strcontains(var.state_bucket_name, "..") &&
+      !can(regex("^\\d{1,3}(\\.\\d{1,3}){3}$", var.state_bucket_name))
+    )
+    error_message = "state_bucket_name must be a valid S3 bucket name: 3-63 lowercase letters, digits, dots, or hyphens; no adjacent dots or IP-address format."
   }
 }

@@ -28,4 +28,4 @@ State lives in the S3 bucket defined in `global/` (`langler-terraform-state`), w
 - `terraform fmt -recursive` / `terraform validate`
 - `tflint --recursive` (config in `.tflint.hcl`)
 - `checkov -d .`
-- `terraform test` (unit tests under `*/tests/`, plan-only with mocked providers) Deploys are expected to run via a `deploy.sh` that fail-fasts on `aws sts get-caller-identity`, applies terraform, builds the frontend, syncs to S3 with split cache headers, and invalidates CloudFront.
+- `terraform test` (unit tests under `*/tests/`, plan-only with mocked providers)
