@@ -6,25 +6,36 @@ All AWS infrastructure lives here, following the myangler-web pattern: Next.js s
 
 ## Layout
 
-- `versions.tf` / `providers.tf` — provider setup; a `us_east_1` alias exists for the CloudFront ACM certificate.
-- `variables.tf` — domain (`langler.rtrydev.com`), region, and paths to sibling repo build artifacts (`langler-backend/build`, `langler-ui/out`).
-- `main.tf` — module composition (modules to be added per `langler/tasks/01-foundations-infrastructure.md`).
+- `modules/frontend` — private S3, CloudFront OAC and rewrite function, ACM, and Route 53.
+- `modules/auth` — invitation-only Cognito pool and browser client.
+- `modules/api` — authenticated HTTP API and arm64 Go Lambda.
+- `modules/storage` — provisioned-capacity DynamoDB single table.
+- `environments/prod` — production composition and S3 backend.
+- `global` — Terraform state bucket.
 
 ## Usage
 
 ```sh
-terraform init
-terraform plan -out=tfplan
+make -C ../langler-backend build
+terraform -chdir=environments/prod init
+terraform -chdir=environments/prod plan -out=tfplan
 ```
 
-A human reviews the plan and applies it; automation never runs `terraform apply`.
+A human runs the checks locally, reviews the saved plan, and applies it from the same machine.
+
+## Deploy
+
+From this repository, log in with the AWS CLI, set `LANGLER_AWS_ACCOUNT_ID` to the expected 12-digit account, and run `./scripts/deploy.sh`. The AWS CLI and Terraform use the active shared profile directly. The script runs `./scripts/check.sh`, verifies the active AWS account, produces a private temporary Terraform plan, pauses for explicit human review, applies that exact plan, builds and uploads the frontend, and invalidates CloudFront. The temporary plan is cleared on every exit path.
+
+Provision an invited account after the first deploy with `./scripts/create-user.sh learner@example.com`. Cognito emails the temporary credential and requires the user to choose a permanent password on first sign-in.
 
 ## State
 
-State lives in the S3 bucket defined in `global/` (`langler-terraform-state`), with native S3 lockfile locking (`use_lockfile = true` — no DynamoDB lock table). `backend.tf` configures the root module's backend (key `root/terraform.tfstate`). See `global/README.md` for the one-time bootstrap: the bucket itself is created from `global/` with local state before any backend can point at it.
+State lives in the S3 bucket defined in `global/` (`langler-terraform-state`), with native S3 lockfile locking (`use_lockfile = true` — no DynamoDB lock table). Production preserves the existing `root/terraform.tfstate` key. See `global/README.md` for the one-time bootstrap.
 
 ## Tooling
 
+- `./scripts/check.sh` — backend build/tests/lint, UI lint/tests, and all Terraform checks
 - `terraform fmt -recursive` / `terraform validate`
 - `tflint --recursive` (config in `.tflint.hcl`)
 - `checkov -d .`

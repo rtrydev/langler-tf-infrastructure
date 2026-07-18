@@ -1,6 +1,6 @@
 # global
 
-Account-level resources that are not per-environment. Currently: the S3 bucket that stores Terraform state for every root module in this repo.
+Account-level resources that are not per-environment. This module currently manages the S3 state bucket.
 
 ## State bucket
 
