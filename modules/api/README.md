@@ -1,6 +1,6 @@
 # api
 
-Deploys an arm64 Go Lambda on the `provided.al2023` OS-only runtime behind an API Gateway HTTP API. Every route (`GET /hello`, `GET /reference/vocab`, `GET /reference/grammar`, `GET /reference/scripts`) requires a Cognito access token carrying the SDK authentication scope. The Lambda receives the application DynamoDB table name and may only `Query` that table. CORS is configured only on the HTTP API and permits one frontend origin.
+Deploys an arm64 Go Lambda on the `provided.al2023` OS-only runtime behind an API Gateway HTTP API. Every route (`GET /hello`, `GET /reference/vocab`, `GET /reference/grammar`, `GET /reference/scripts`, `POST /lessons/prompt`, `POST /lessons/import`, `GET /lessons`, `GET /lessons/{id}`, `DELETE /lessons/{id}`) requires a Cognito access token carrying the SDK authentication scope. The Lambda receives the application DynamoDB table name and may `Query` it plus perform the item operations lesson storage needs (`GetItem`, `PutItem`, `DeleteItem`, `BatchGetItem`); it can never `Scan`. CORS is configured only on the HTTP API and permits one frontend origin with the GET, POST, and DELETE methods.
 
 ## Inputs
 
