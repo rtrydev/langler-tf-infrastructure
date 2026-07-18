@@ -1,6 +1,6 @@
 # api
 
-Deploys the arm64 Go API and machine-authorizer Lambdas on the `provided.al2023` OS-only runtime. Browser routes use a Cognito JWT authorizer. A separate machine HTTP API exposes only reference reads and lesson import through an uncached Lambda authorizer, so token revocation takes effect on the next call. DynamoDB access is limited to the item, query, transaction, and counter operations needed by lessons and agent tokens; neither function can scan the table. CORS is configured only on the browser API and permits one frontend origin.
+Deploys the arm64 Go API and machine-authorizer Lambdas on the `provided.al2023` OS-only runtime. Browser routes use a Cognito JWT authorizer and expose lessons, review scheduling, progress summaries, reference data, and agent-token management. A separate machine HTTP API exposes only reference reads and lesson import through an uncached Lambda authorizer, so token revocation takes effect on the next call. DynamoDB access is limited to the item, query, transaction, and counter operations needed by lessons, progress, and agent tokens; neither function can scan the table. CORS is configured only on the browser API and permits one frontend origin.
 
 ## Inputs
 

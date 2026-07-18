@@ -50,6 +50,21 @@ locals {
       statement_id    = "AllowApiGatewayInvokeLessonResultsCreate"
       permission_path = "POST/lessons/*/results"
     }
+    reviews_due = {
+      route_key       = "GET /reviews/due"
+      statement_id    = "AllowApiGatewayInvokeReviewsDue"
+      permission_path = "GET/reviews/due"
+    }
+    reviews_grade = {
+      route_key       = "POST /reviews/grade"
+      statement_id    = "AllowApiGatewayInvokeReviewsGrade"
+      permission_path = "POST/reviews/grade"
+    }
+    progress_summary = {
+      route_key       = "GET /progress"
+      statement_id    = "AllowApiGatewayInvokeProgressSummary"
+      permission_path = "GET/progress"
+    }
     agent_tokens_create = {
       route_key       = "POST /agent-tokens"
       statement_id    = "AllowApiGatewayInvokeAgentTokensCreate"

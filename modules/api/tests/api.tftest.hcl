@@ -45,8 +45,8 @@ run "plans_reference_routes_with_scoped_permissions" {
   command = plan
 
   assert {
-    condition     = keys(aws_apigatewayv2_route.authenticated) == ["agent_tokens_create", "agent_tokens_list", "agent_tokens_revoke", "hello", "lesson_results_create", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "reference_grammar", "reference_scripts", "reference_vocab"]
-    error_message = "The route map must contain the hello route, the three reference routes, and the lesson routes."
+    condition     = keys(aws_apigatewayv2_route.authenticated) == ["agent_tokens_create", "agent_tokens_list", "agent_tokens_revoke", "hello", "lesson_results_create", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "progress_summary", "reference_grammar", "reference_scripts", "reference_vocab", "reviews_due", "reviews_grade"]
+    error_message = "The route map must contain the authenticated status, reference, lesson, review, progress, and token routes."
   }
 
   assert {
@@ -101,6 +101,20 @@ run "plans_lesson_routes_and_write_access" {
   assert {
     condition     = !strcontains(aws_iam_role_policy.lambda_lesson_store.policy, "dynamodb:Scan") && !strcontains(aws_iam_role_policy.lambda_lesson_store.policy, "*\"")
     error_message = "The lesson store policy must stay scoped to item operations on the application table."
+  }
+}
+
+run "plans_progress_and_review_routes" {
+  command = plan
+
+  assert {
+    condition     = aws_apigatewayv2_route.authenticated["reviews_due"].route_key == "GET /reviews/due" && aws_apigatewayv2_route.authenticated["reviews_grade"].route_key == "POST /reviews/grade"
+    error_message = "The review queue must expose its due read and grade mutation routes."
+  }
+
+  assert {
+    condition     = aws_apigatewayv2_route.authenticated["progress_summary"].route_key == "GET /progress"
+    error_message = "The progress summary route must be GET /progress."
   }
 }
 
