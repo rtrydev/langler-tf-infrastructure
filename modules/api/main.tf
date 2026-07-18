@@ -1,3 +1,24 @@
+locals {
+  routes = {
+    hello = {
+      route_key    = "GET /hello"
+      statement_id = "AllowApiGatewayInvoke"
+    }
+    reference_vocab = {
+      route_key    = "GET /reference/vocab"
+      statement_id = "AllowApiGatewayInvokeReferenceVocab"
+    }
+    reference_grammar = {
+      route_key    = "GET /reference/grammar"
+      statement_id = "AllowApiGatewayInvokeReferenceGrammar"
+    }
+    reference_scripts = {
+      route_key    = "GET /reference/scripts"
+      statement_id = "AllowApiGatewayInvokeReferenceScripts"
+    }
+  }
+}
+
 resource "aws_iam_role" "lambda" {
   name = "${var.name}-lambda"
   assume_role_policy = jsonencode({
@@ -26,6 +47,19 @@ resource "aws_iam_role_policy" "lambda_logs" {
   })
 }
 
+resource "aws_iam_role_policy" "lambda_reference_read" {
+  name = "dynamodb-query"
+  role = aws_iam_role.lambda.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["dynamodb:Query"]
+      Resource = var.table_arn
+    }]
+  })
+}
+
 resource "aws_cloudwatch_log_group" "api" {
   #checkov:skip=CKV_AWS_158:KMS encryption has recurring request costs and logs contain no request bodies, tokens, or personal data
   #checkov:skip=CKV_AWS_338:Fourteen-day retention limits storage cost while retaining enough diagnostics for this personal application
@@ -36,7 +70,7 @@ resource "aws_cloudwatch_log_group" "api" {
 resource "aws_lambda_function" "api" {
   #checkov:skip=CKV_AWS_116:No dead-letter queue is needed for a synchronous HTTP endpoint
   #checkov:skip=CKV_AWS_117:The endpoint accesses only public AWS control planes and does not require a VPC
-  #checkov:skip=CKV_AWS_173:Only the non-sensitive deployment stage is supplied as an environment variable
+  #checkov:skip=CKV_AWS_173:Only the non-sensitive deployment stage and DynamoDB table name are supplied as environment variables
   #checkov:skip=CKV_AWS_272:Code signing adds operational overhead that is disproportionate for this owner-built personal application
   #checkov:skip=CKV_AWS_50:X-Ray tracing adds cost and is deferred to the dedicated observability task
   function_name                  = "${var.name}-api"
@@ -52,7 +86,8 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      STAGE = var.stage
+      STAGE      = var.stage
+      TABLE_NAME = var.table_name
     }
   }
 
@@ -93,13 +128,20 @@ resource "aws_apigatewayv2_integration" "api" {
   timeout_milliseconds   = 10000
 }
 
-resource "aws_apigatewayv2_route" "hello" {
+resource "aws_apigatewayv2_route" "authenticated" {
+  for_each = local.routes
+
   api_id               = aws_apigatewayv2_api.api.id
-  route_key            = "GET /hello"
+  route_key            = each.value.route_key
   target               = "integrations/${aws_apigatewayv2_integration.api.id}"
   authorization_type   = "JWT"
   authorizer_id        = aws_apigatewayv2_authorizer.cognito.id
   authorization_scopes = ["aws.cognito.signin.user.admin"]
+}
+
+moved {
+  from = aws_apigatewayv2_route.hello
+  to   = aws_apigatewayv2_route.authenticated["hello"]
 }
 
 resource "aws_apigatewayv2_stage" "default" {
@@ -115,9 +157,16 @@ resource "aws_apigatewayv2_stage" "default" {
 }
 
 resource "aws_lambda_permission" "api_gateway" {
-  statement_id  = "AllowApiGatewayInvoke"
+  for_each = local.routes
+
+  statement_id  = each.value.statement_id
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.api.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.api.execution_arn}/*/GET/hello"
+  source_arn    = "${aws_apigatewayv2_api.api.execution_arn}/*/${replace(each.value.route_key, " ", "")}"
+}
+
+moved {
+  from = aws_lambda_permission.api_gateway
+  to   = aws_lambda_permission.api_gateway["hello"]
 }

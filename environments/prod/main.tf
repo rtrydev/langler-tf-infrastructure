@@ -24,7 +24,15 @@ module "api" {
   jwt_issuer          = module.auth.issuer
   jwt_audience        = module.auth.client_id
   allowed_origin      = local.frontend_origin
+  table_name          = module.storage.table_name
+  table_arn           = module.storage.table_arn
   stage               = "prod"
+}
+
+module "reference_assets" {
+  source = "../../modules/reference-assets"
+
+  name = local.name
 }
 
 module "frontend" {

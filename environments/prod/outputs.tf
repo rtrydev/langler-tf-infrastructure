@@ -23,6 +23,16 @@ output "frontend_bucket_name" {
   value       = module.frontend.bucket_name
 }
 
+output "reference_assets_bucket_name" {
+  description = "S3 bucket receiving reference media uploaded by the ETL"
+  value       = module.reference_assets.bucket_name
+}
+
+output "reference_assets_cdn_domain" {
+  description = "CloudFront domain serving reference media assets"
+  value       = module.reference_assets.distribution_domain_name
+}
+
 output "site_url" {
   description = "Canonical Langler URL"
   value       = module.frontend.site_url

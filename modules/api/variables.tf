@@ -48,6 +48,26 @@ variable "allowed_origin" {
   }
 }
 
+variable "table_name" {
+  description = "DynamoDB table name exposed to the Lambda for reference queries"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9_.-]{3,255}$", var.table_name))
+    error_message = "table_name must be a valid DynamoDB table name."
+  }
+}
+
+variable "table_arn" {
+  description = "ARN of the DynamoDB table the Lambda may query"
+  type        = string
+
+  validation {
+    condition     = startswith(var.table_arn, "arn:aws:dynamodb:")
+    error_message = "table_arn must be a DynamoDB table ARN."
+  }
+}
+
 variable "stage" {
   description = "Deployment stage exposed to the Lambda"
   type        = string
