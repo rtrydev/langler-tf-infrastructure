@@ -39,8 +39,8 @@ run "plans_reference_routes_with_scoped_permissions" {
   command = plan
 
   assert {
-    condition     = keys(aws_apigatewayv2_route.authenticated) == ["hello", "reference_grammar", "reference_scripts", "reference_vocab"]
-    error_message = "The route map must contain the hello route and the three reference routes."
+    condition     = keys(aws_apigatewayv2_route.authenticated) == ["hello", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "reference_grammar", "reference_scripts", "reference_vocab"]
+    error_message = "The route map must contain the hello route, the three reference routes, and the five lesson routes."
   }
 
   assert {
@@ -61,5 +61,34 @@ run "plans_reference_routes_with_scoped_permissions" {
   assert {
     condition     = aws_lambda_function.api.environment[0].variables["TABLE_NAME"] == var.table_name
     error_message = "The Lambda must receive the reference table name."
+  }
+}
+
+run "plans_lesson_routes_and_write_access" {
+  command = plan
+
+  assert {
+    condition     = aws_apigatewayv2_route.authenticated["lessons_import"].route_key == "POST /lessons/import"
+    error_message = "The lesson import route must be POST /lessons/import."
+  }
+
+  assert {
+    condition     = aws_apigatewayv2_route.authenticated["lessons_get"].route_key == "GET /lessons/{id}"
+    error_message = "The lesson detail route must be GET /lessons/{id}."
+  }
+
+  assert {
+    condition     = local.routes["lessons_get"].permission_path == "GET/lessons/*" && local.routes["lessons_delete"].permission_path == "DELETE/lessons/*"
+    error_message = "Parameterised lesson routes must use wildcard invoke permissions that match request paths."
+  }
+
+  assert {
+    condition     = alltrue([for method in ["GET", "POST", "DELETE"] : contains(aws_apigatewayv2_api.api.cors_configuration[0].allow_methods, method)])
+    error_message = "CORS must allow the lesson browser methods GET, POST, and DELETE."
+  }
+
+  assert {
+    condition     = !strcontains(aws_iam_role_policy.lambda_lesson_store.policy, "dynamodb:Scan") && !strcontains(aws_iam_role_policy.lambda_lesson_store.policy, "*\"")
+    error_message = "The lesson store policy must stay scoped to item operations on the application table."
   }
 }

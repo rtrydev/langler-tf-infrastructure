@@ -1,20 +1,49 @@
 locals {
   routes = {
     hello = {
-      route_key    = "GET /hello"
-      statement_id = "AllowApiGatewayInvoke"
+      route_key       = "GET /hello"
+      statement_id    = "AllowApiGatewayInvoke"
+      permission_path = "GET/hello"
     }
     reference_vocab = {
-      route_key    = "GET /reference/vocab"
-      statement_id = "AllowApiGatewayInvokeReferenceVocab"
+      route_key       = "GET /reference/vocab"
+      statement_id    = "AllowApiGatewayInvokeReferenceVocab"
+      permission_path = "GET/reference/vocab"
     }
     reference_grammar = {
-      route_key    = "GET /reference/grammar"
-      statement_id = "AllowApiGatewayInvokeReferenceGrammar"
+      route_key       = "GET /reference/grammar"
+      statement_id    = "AllowApiGatewayInvokeReferenceGrammar"
+      permission_path = "GET/reference/grammar"
     }
     reference_scripts = {
-      route_key    = "GET /reference/scripts"
-      statement_id = "AllowApiGatewayInvokeReferenceScripts"
+      route_key       = "GET /reference/scripts"
+      statement_id    = "AllowApiGatewayInvokeReferenceScripts"
+      permission_path = "GET/reference/scripts"
+    }
+    lessons_prompt = {
+      route_key       = "POST /lessons/prompt"
+      statement_id    = "AllowApiGatewayInvokeLessonsPrompt"
+      permission_path = "POST/lessons/prompt"
+    }
+    lessons_import = {
+      route_key       = "POST /lessons/import"
+      statement_id    = "AllowApiGatewayInvokeLessonsImport"
+      permission_path = "POST/lessons/import"
+    }
+    lessons_list = {
+      route_key       = "GET /lessons"
+      statement_id    = "AllowApiGatewayInvokeLessonsList"
+      permission_path = "GET/lessons"
+    }
+    lessons_get = {
+      route_key       = "GET /lessons/{id}"
+      statement_id    = "AllowApiGatewayInvokeLessonsGet"
+      permission_path = "GET/lessons/*"
+    }
+    lessons_delete = {
+      route_key       = "DELETE /lessons/{id}"
+      statement_id    = "AllowApiGatewayInvokeLessonsDelete"
+      permission_path = "DELETE/lessons/*"
     }
   }
 }
@@ -55,6 +84,24 @@ resource "aws_iam_role_policy" "lambda_reference_read" {
     Statement = [{
       Effect   = "Allow"
       Action   = ["dynamodb:Query"]
+      Resource = var.table_arn
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "lambda_lesson_store" {
+  name = "dynamodb-lessons"
+  role = aws_iam_role.lambda.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "dynamodb:BatchGetItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+      ]
       Resource = var.table_arn
     }]
   })
@@ -101,7 +148,7 @@ resource "aws_apigatewayv2_api" "api" {
   cors_configuration {
     allow_credentials = false
     allow_headers     = ["authorization", "content-type"]
-    allow_methods     = ["GET"]
+    allow_methods     = ["GET", "POST", "DELETE"]
     allow_origins     = [var.allowed_origin]
     max_age           = 3600
   }
@@ -163,7 +210,7 @@ resource "aws_lambda_permission" "api_gateway" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.api.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.api.execution_arn}/*/${replace(each.value.route_key, " ", "")}"
+  source_arn    = "${aws_apigatewayv2_api.api.execution_arn}/*/${each.value.permission_path}"
 }
 
 moved {
