@@ -45,6 +45,11 @@ locals {
       statement_id    = "AllowApiGatewayInvokeLessonsDelete"
       permission_path = "DELETE/lessons/*"
     }
+    lesson_results_create = {
+      route_key       = "POST /lessons/{id}/results"
+      statement_id    = "AllowApiGatewayInvokeLessonResultsCreate"
+      permission_path = "POST/lessons/*/results"
+    }
   }
 }
 
