@@ -8,7 +8,7 @@ All AWS infrastructure lives here, following the myangler-web pattern: Next.js s
 
 - `modules/frontend` — private S3, CloudFront OAC and rewrite function, ACM, and Route 53.
 - `modules/auth` — invitation-only Cognito pool and browser client.
-- `modules/api` — authenticated HTTP API and arm64 Go Lambda.
+- `modules/api` — Cognito browser API, scoped-token machine API, and arm64 API/authorizer Lambdas.
 - `modules/storage` — provisioned-capacity DynamoDB single table.
 - `environments/prod` — production composition and S3 backend.
 - `global` — Terraform state bucket.

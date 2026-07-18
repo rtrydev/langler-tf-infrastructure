@@ -18,6 +18,16 @@ variable "lambda_package_path" {
   }
 }
 
+variable "authorizer_package_path" {
+  description = "Path to a zip containing the arm64 machine-authorizer bootstrap binary"
+  type        = string
+
+  validation {
+    condition     = endswith(var.authorizer_package_path, ".zip")
+    error_message = "authorizer_package_path must identify a zip archive."
+  }
+}
+
 variable "jwt_issuer" {
   description = "Cognito JWT issuer URL"
   type        = string

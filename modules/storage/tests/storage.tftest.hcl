@@ -16,6 +16,12 @@ run "plans_with_free_tier_capacity" {
     condition     = aws_dynamodb_table.application.hash_key == "PK" && aws_dynamodb_table.application.range_key == "SK"
     error_message = "The single-table key contract must remain PK/SK."
   }
+
+
+  assert {
+    condition     = aws_dynamodb_table.application.ttl[0].enabled && aws_dynamodb_table.application.ttl[0].attribute_name == "expiresAtUnix"
+    error_message = "Ephemeral per-token rate-limit windows must expire through DynamoDB TTL."
+  }
 }
 
 run "rejects_capacity_above_free_tier" {

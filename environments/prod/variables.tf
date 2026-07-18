@@ -51,3 +51,14 @@ variable "lambda_package_path" {
     error_message = "lambda_package_path must identify a zip archive."
   }
 }
+
+variable "authorizer_package_path" {
+  description = "Path to the machine authorizer deployment package"
+  type        = string
+  default     = "../../../langler-backend/build/authorizer.zip"
+
+  validation {
+    condition     = endswith(var.authorizer_package_path, ".zip")
+    error_message = "authorizer_package_path must identify a zip archive."
+  }
+}

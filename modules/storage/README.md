@@ -1,6 +1,6 @@
 # storage
 
-Creates the Langler DynamoDB single table with `PK` and `SK` string keys. Capacity is provisioned and constrained to the Always Free allowance.
+Creates the Langler DynamoDB single table with `PK` and `SK` string keys. Capacity is provisioned and constrained to the Always Free allowance. DynamoDB TTL removes ephemeral per-token rate-limit windows through the numeric `expiresAtUnix` attribute.
 
 ## Inputs
 
