@@ -20,6 +20,11 @@ locals {
       statement_id    = "AllowApiGatewayInvokeReferenceScripts"
       permission_path = "GET/reference/scripts"
     }
+    reference_readings = {
+      route_key       = "GET /reference/readings"
+      statement_id    = "AllowApiGatewayInvokeReferenceReadings"
+      permission_path = "GET/reference/readings"
+    }
     lessons_prompt = {
       route_key       = "POST /lessons/prompt"
       statement_id    = "AllowApiGatewayInvokeLessonsPrompt"
@@ -112,10 +117,11 @@ locals {
     }
   }
   machine_routes = {
-    reference_vocab   = local.human_routes.reference_vocab
-    reference_grammar = local.human_routes.reference_grammar
-    reference_scripts = local.human_routes.reference_scripts
-    lessons_import    = local.human_routes.lessons_import
+    reference_vocab    = local.human_routes.reference_vocab
+    reference_grammar  = local.human_routes.reference_grammar
+    reference_scripts  = local.human_routes.reference_scripts
+    reference_readings = local.human_routes.reference_readings
+    lessons_import     = local.human_routes.lessons_import
   }
 }
 
