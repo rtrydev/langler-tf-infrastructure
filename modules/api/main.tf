@@ -30,6 +30,11 @@ locals {
       statement_id    = "AllowApiGatewayInvokeLessonsImport"
       permission_path = "POST/lessons/import"
     }
+    lessons_topics = {
+      route_key       = "GET /lessons/topics"
+      statement_id    = "AllowApiGatewayInvokeLessonsTopics"
+      permission_path = "GET/lessons/topics"
+    }
     lessons_list = {
       route_key       = "GET /lessons"
       statement_id    = "AllowApiGatewayInvokeLessonsList"
