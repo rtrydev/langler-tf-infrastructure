@@ -87,3 +87,15 @@ variable "stage" {
     error_message = "stage must contain 2-32 lowercase letters, digits, or hyphens."
   }
 }
+
+variable "embeddings_url" {
+  description = "HTTPS URL of the vocabulary embedding index fetched by the API at runtime; empty disables semantic topic search"
+  type        = string
+  default     = ""
+}
+
+variable "embed_model_id" {
+  description = "Bedrock embedding model id used for semantic topic search; empty disables it"
+  type        = string
+  default     = ""
+}

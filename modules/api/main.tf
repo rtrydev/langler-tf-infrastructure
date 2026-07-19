@@ -235,7 +235,7 @@ resource "aws_iam_role_policy" "authorizer" {
 resource "aws_lambda_function" "api" {
   #checkov:skip=CKV_AWS_116:No dead-letter queue is needed for a synchronous HTTP endpoint
   #checkov:skip=CKV_AWS_117:The endpoint accesses only public AWS control planes and does not require a VPC
-  #checkov:skip=CKV_AWS_173:Only the non-sensitive deployment stage and DynamoDB table name are supplied as environment variables
+  #checkov:skip=CKV_AWS_173:Only the non-sensitive stage, table name, embedding index URL, and model id are supplied as environment variables
   #checkov:skip=CKV_AWS_272:Code signing adds operational overhead that is disproportionate for this owner-built personal application
   #checkov:skip=CKV_AWS_50:X-Ray tracing adds cost and is deferred to the dedicated observability task
   function_name                  = "${var.name}-api"
@@ -251,8 +251,10 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      STAGE      = var.stage
-      TABLE_NAME = var.table_name
+      STAGE          = var.stage
+      TABLE_NAME     = var.table_name
+      EMBEDDINGS_URL = var.embeddings_url
+      EMBED_MODEL_ID = var.embed_model_id
     }
   }
 
