@@ -232,6 +232,22 @@ resource "aws_iam_role_policy" "authorizer" {
   })
 }
 
+data "aws_region" "current" {}
+
+resource "aws_iam_role_policy" "lambda_bedrock_embed" {
+  count = var.embed_model_id == "" ? 0 : 1
+  name  = "bedrock-embed"
+  role  = aws_iam_role.lambda.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["bedrock:InvokeModel"]
+      Resource = "arn:aws:bedrock:${data.aws_region.current.region}::foundation-model/${var.embed_model_id}"
+    }]
+  })
+}
+
 resource "aws_lambda_function" "api" {
   #checkov:skip=CKV_AWS_116:No dead-letter queue is needed for a synchronous HTTP endpoint
   #checkov:skip=CKV_AWS_117:The endpoint accesses only public AWS control planes and does not require a VPC
