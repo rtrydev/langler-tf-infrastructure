@@ -45,8 +45,8 @@ run "plans_reference_routes_with_scoped_permissions" {
   command = plan
 
   assert {
-    condition     = keys(aws_apigatewayv2_route.authenticated) == ["agent_tokens_create", "agent_tokens_list", "agent_tokens_revoke", "hello", "lesson_results_create", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "progress_summary", "reference_grammar", "reference_scripts", "reference_vocab", "reviews_due", "reviews_grade"]
-    error_message = "The route map must contain the authenticated status, reference, lesson, review, progress, and token routes."
+    condition     = keys(aws_apigatewayv2_route.authenticated) == ["agent_tokens_create", "agent_tokens_list", "agent_tokens_revoke", "assessment_answers_create", "assessments_create", "assessments_get", "assessments_list", "hello", "lesson_results_create", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "profile_levels", "progress_summary", "reference_grammar", "reference_scripts", "reference_vocab", "reviews_due", "reviews_grade"]
+    error_message = "The route map must contain the authenticated status, reference, lesson, review, progress, assessment, and token routes."
   }
 
   assert {
@@ -115,6 +115,30 @@ run "plans_progress_and_review_routes" {
   assert {
     condition     = aws_apigatewayv2_route.authenticated["progress_summary"].route_key == "GET /progress"
     error_message = "The progress summary route must be GET /progress."
+  }
+}
+
+run "plans_assessment_routes" {
+  command = plan
+
+  assert {
+    condition     = aws_apigatewayv2_route.authenticated["assessments_create"].route_key == "POST /assessments" && aws_apigatewayv2_route.authenticated["assessments_list"].route_key == "GET /assessments"
+    error_message = "Placement assessments must expose their start and history routes."
+  }
+
+  assert {
+    condition     = aws_apigatewayv2_route.authenticated["assessments_get"].route_key == "GET /assessments/{id}" && aws_apigatewayv2_route.authenticated["assessment_answers_create"].route_key == "POST /assessments/{id}/answers"
+    error_message = "Assessment detail and answer submission must use the parameterised routes."
+  }
+
+  assert {
+    condition     = local.human_routes["assessments_get"].permission_path == "GET/assessments/*" && local.human_routes["assessment_answers_create"].permission_path == "POST/assessments/*/answers"
+    error_message = "Parameterised assessment routes must use wildcard invoke permissions that match request paths."
+  }
+
+  assert {
+    condition     = aws_apigatewayv2_route.authenticated["profile_levels"].route_key == "GET /profile/levels"
+    error_message = "The profile level defaults route must be GET /profile/levels."
   }
 }
 

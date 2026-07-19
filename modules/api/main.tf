@@ -65,6 +65,31 @@ locals {
       statement_id    = "AllowApiGatewayInvokeProgressSummary"
       permission_path = "GET/progress"
     }
+    assessments_create = {
+      route_key       = "POST /assessments"
+      statement_id    = "AllowApiGatewayInvokeAssessmentsCreate"
+      permission_path = "POST/assessments"
+    }
+    assessments_list = {
+      route_key       = "GET /assessments"
+      statement_id    = "AllowApiGatewayInvokeAssessmentsList"
+      permission_path = "GET/assessments"
+    }
+    assessments_get = {
+      route_key       = "GET /assessments/{id}"
+      statement_id    = "AllowApiGatewayInvokeAssessmentsGet"
+      permission_path = "GET/assessments/*"
+    }
+    assessment_answers_create = {
+      route_key       = "POST /assessments/{id}/answers"
+      statement_id    = "AllowApiGatewayInvokeAssessmentAnswersCreate"
+      permission_path = "POST/assessments/*/answers"
+    }
+    profile_levels = {
+      route_key       = "GET /profile/levels"
+      statement_id    = "AllowApiGatewayInvokeProfileLevels"
+      permission_path = "GET/profile/levels"
+    }
     agent_tokens_create = {
       route_key       = "POST /agent-tokens"
       statement_id    = "AllowApiGatewayInvokeAgentTokensCreate"
