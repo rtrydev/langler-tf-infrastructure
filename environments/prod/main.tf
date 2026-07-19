@@ -28,8 +28,11 @@ module "api" {
   table_name              = module.storage.table_name
   table_arn               = module.storage.table_arn
   stage                   = "prod"
-  embeddings_url          = "https://${module.reference_assets.distribution_domain_name}/embeddings/ja-vocab.embed"
-  embed_model_id          = "cohere.embed-multilingual-v3"
+  embeddings_urls = {
+    ja = "https://${module.reference_assets.distribution_domain_name}/embeddings/ja-vocab.embed"
+    pl = "https://${module.reference_assets.distribution_domain_name}/embeddings/pl-vocab.embed"
+  }
+  embed_model_id = "cohere.embed-multilingual-v3"
 }
 
 module "reference_assets" {
