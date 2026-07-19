@@ -81,6 +81,7 @@ fi
 
 aws s3 sync "$UI_OUT" "s3://$FRONTEND_BUCKET" \
   --delete \
+  --exclude ".DS_Store" \
   --exclude "_next/static/*" \
   --cache-control "public, max-age=60, must-revalidate"
 

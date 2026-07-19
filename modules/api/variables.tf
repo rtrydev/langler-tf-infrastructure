@@ -88,10 +88,18 @@ variable "stage" {
   }
 }
 
-variable "embeddings_url" {
-  description = "HTTPS URL of the vocabulary embedding index fetched by the API at runtime; empty disables semantic topic search"
-  type        = string
-  default     = ""
+variable "embeddings_urls" {
+  description = "HTTPS vocabulary embedding index URLs by language; empty disables semantic topic search"
+  type        = map(string)
+  default     = {}
+
+  validation {
+    condition = alltrue([
+      for language, url in var.embeddings_urls :
+      contains(["ja", "my", "pl"], language) && can(regex("^https://[^[:space:]]+$", url))
+    ])
+    error_message = "embeddings_urls keys must be supported language codes and values must be HTTPS URLs."
+  }
 }
 
 variable "embed_model_id" {

@@ -10,6 +10,11 @@ variables {
   table_name              = "langler-prod"
   table_arn               = "arn:aws:dynamodb:eu-central-1:111111111111:table/langler-prod"
   stage                   = "prod"
+  embeddings_urls = {
+    ja = "https://assets.example.com/embeddings/ja-vocab.embed"
+    pl = "https://assets.example.com/embeddings/pl-vocab.embed"
+  }
+  embed_model_id = "cohere.embed-multilingual-v3"
 }
 
 run "plans_authenticated_arm64_api" {
@@ -23,6 +28,16 @@ run "plans_authenticated_arm64_api" {
   assert {
     condition     = aws_lambda_function.authorizer.runtime == "provided.al2023" && contains(aws_lambda_function.authorizer.architectures, "arm64")
     error_message = "The machine authorizer must use the arm64 AL2023 OS-only runtime."
+  }
+
+  assert {
+    condition     = aws_lambda_function.api.memory_size == 2048 && aws_lambda_function.api.timeout == 29
+    error_message = "The API Lambda must have 2,048 MB of memory and a 29-second timeout."
+  }
+
+  assert {
+    condition     = aws_apigatewayv2_integration.api.timeout_milliseconds == 30000 && aws_apigatewayv2_integration.machine.timeout_milliseconds == 30000
+    error_message = "Both API Gateway integrations must allow 30 seconds."
   }
 
   assert {
@@ -45,7 +60,7 @@ run "plans_reference_routes_with_scoped_permissions" {
   command = plan
 
   assert {
-    condition     = keys(aws_apigatewayv2_route.authenticated) == ["agent_tokens_create", "agent_tokens_list", "agent_tokens_revoke", "assessment_answers_create", "assessments_create", "assessments_get", "assessments_list", "hello", "lesson_results_create", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "profile_levels", "progress_summary", "reference_grammar", "reference_scripts", "reference_vocab", "reviews_due", "reviews_grade"]
+    condition     = keys(aws_apigatewayv2_route.authenticated) == ["agent_tokens_create", "agent_tokens_list", "agent_tokens_revoke", "assessment_answers_create", "assessments_create", "assessments_get", "assessments_list", "hello", "lesson_results_create", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "lessons_topics", "profile_levels", "progress_summary", "reference_grammar", "reference_scripts", "reference_vocab", "reviews_due", "reviews_grade"]
     error_message = "The route map must contain the authenticated status, reference, lesson, review, progress, assessment, and token routes."
   }
 
@@ -67,6 +82,11 @@ run "plans_reference_routes_with_scoped_permissions" {
   assert {
     condition     = aws_lambda_function.api.environment[0].variables["TABLE_NAME"] == var.table_name
     error_message = "The Lambda must receive the reference table name."
+  }
+
+  assert {
+    condition     = tomap(jsondecode(aws_lambda_function.api.environment[0].variables["EMBEDDINGS_URLS"])) == var.embeddings_urls
+    error_message = "The Lambda must receive every language-specific embedding index URL."
   }
 }
 

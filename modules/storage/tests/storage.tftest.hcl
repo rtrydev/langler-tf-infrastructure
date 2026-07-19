@@ -1,6 +1,6 @@
 mock_provider "aws" {}
 
-run "plans_with_free_tier_capacity" {
+run "plans_with_on_demand_capacity" {
   command = plan
 
   variables {
@@ -8,8 +8,8 @@ run "plans_with_free_tier_capacity" {
   }
 
   assert {
-    condition     = aws_dynamodb_table.application.billing_mode == "PROVISIONED"
-    error_message = "The table must use provisioned capacity to qualify for Always Free."
+    condition     = aws_dynamodb_table.application.billing_mode == "PAY_PER_REQUEST"
+    error_message = "The table must use on-demand capacity."
   }
 
   assert {
@@ -22,15 +22,4 @@ run "plans_with_free_tier_capacity" {
     condition     = aws_dynamodb_table.application.ttl[0].enabled && aws_dynamodb_table.application.ttl[0].attribute_name == "expiresAtUnix"
     error_message = "Ephemeral per-token rate-limit windows must expire through DynamoDB TTL."
   }
-}
-
-run "rejects_capacity_above_free_tier" {
-  command = plan
-
-  variables {
-    table_name    = "langler-prod"
-    read_capacity = 26
-  }
-
-  expect_failures = [var.read_capacity]
 }

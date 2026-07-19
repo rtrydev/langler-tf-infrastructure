@@ -1,6 +1,6 @@
 # api
 
-Deploys the arm64 Go API and machine-authorizer Lambdas on the `provided.al2023` OS-only runtime. Browser routes use a Cognito JWT authorizer and expose lessons, review scheduling, progress summaries, placement assessments with profile level defaults, reference data, and agent-token management. A separate machine HTTP API exposes only reference reads and lesson import through an uncached Lambda authorizer, so token revocation takes effect on the next call. DynamoDB access is limited to the item, query, transaction, and counter operations needed by lessons, progress, assessments, and agent tokens; neither function can scan the table. CORS is configured only on the browser API and permits one frontend origin.
+Deploys the arm64 Go API and machine-authorizer Lambdas on the `provided.al2023` OS-only runtime. The API Lambda receives 2,048 MB of memory and a 29-second timeout behind 30-second browser and machine API Gateway integrations. Browser routes use a Cognito JWT authorizer and expose lessons, review scheduling, progress summaries, placement assessments with profile level defaults, reference data, and agent-token management. A separate machine HTTP API exposes only reference reads and lesson import through an uncached Lambda authorizer, so token revocation takes effect on the next call. DynamoDB access is limited to the item, query, transaction, and counter operations needed by lessons, progress, assessments, and agent tokens; neither function can scan the table. CORS is configured only on the browser API and permits one frontend origin.
 
 ## Inputs
 
@@ -15,6 +15,8 @@ Deploys the arm64 Go API and machine-authorizer Lambdas on the `provided.al2023`
 | `table_name` | `string` | DynamoDB table name passed to the Lambda |
 | `table_arn` | `string` | DynamoDB table ARN the Lambda may query |
 | `stage` | `string` | Runtime stage label |
+| `embeddings_urls` | `map(string)` | Vocabulary embedding index URLs by language |
+| `embed_model_id` | `string` | Bedrock embedding model ID used for semantic topic matching |
 
 ## Outputs
 

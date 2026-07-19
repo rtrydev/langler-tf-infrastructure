@@ -235,7 +235,7 @@ resource "aws_iam_role_policy" "authorizer" {
 data "aws_region" "current" {}
 
 resource "aws_iam_role_policy" "lambda_bedrock_embed" {
-  count = var.embed_model_id == "" ? 0 : 1
+  count = var.embed_model_id == "" || length(var.embeddings_urls) == 0 ? 0 : 1
   name  = "bedrock-embed"
   role  = aws_iam_role.lambda.id
   policy = jsonencode({
@@ -251,7 +251,7 @@ resource "aws_iam_role_policy" "lambda_bedrock_embed" {
 resource "aws_lambda_function" "api" {
   #checkov:skip=CKV_AWS_116:No dead-letter queue is needed for a synchronous HTTP endpoint
   #checkov:skip=CKV_AWS_117:The endpoint accesses only public AWS control planes and does not require a VPC
-  #checkov:skip=CKV_AWS_173:Only the non-sensitive stage, table name, embedding index URL, and model id are supplied as environment variables
+  #checkov:skip=CKV_AWS_173:Only the non-sensitive stage, table name, embedding index URLs, and model id are supplied as environment variables
   #checkov:skip=CKV_AWS_272:Code signing adds operational overhead that is disproportionate for this owner-built personal application
   #checkov:skip=CKV_AWS_50:X-Ray tracing adds cost and is deferred to the dedicated observability task
   function_name                  = "${var.name}-api"
@@ -261,16 +261,16 @@ resource "aws_lambda_function" "api" {
   handler                        = "bootstrap"
   runtime                        = "provided.al2023"
   architectures                  = ["arm64"]
-  memory_size                    = 128
-  timeout                        = 10
+  memory_size                    = 2048
+  timeout                        = 29
   reserved_concurrent_executions = 5
 
   environment {
     variables = {
-      STAGE          = var.stage
-      TABLE_NAME     = var.table_name
-      EMBEDDINGS_URL = var.embeddings_url
-      EMBED_MODEL_ID = var.embed_model_id
+      STAGE           = var.stage
+      TABLE_NAME      = var.table_name
+      EMBEDDINGS_URLS = jsonencode(var.embeddings_urls)
+      EMBED_MODEL_ID  = var.embed_model_id
     }
   }
 
@@ -348,7 +348,7 @@ resource "aws_apigatewayv2_integration" "api" {
   integration_uri        = aws_lambda_function.api.invoke_arn
   integration_method     = "POST"
   payload_format_version = "2.0"
-  timeout_milliseconds   = 10000
+  timeout_milliseconds   = 30000
 }
 
 resource "aws_apigatewayv2_integration" "machine" {
@@ -357,7 +357,7 @@ resource "aws_apigatewayv2_integration" "machine" {
   integration_uri        = aws_lambda_function.api.invoke_arn
   integration_method     = "POST"
   payload_format_version = "2.0"
-  timeout_milliseconds   = 10000
+  timeout_milliseconds   = 30000
 }
 
 resource "aws_apigatewayv2_route" "authenticated" {
