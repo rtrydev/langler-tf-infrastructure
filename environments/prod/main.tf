@@ -30,6 +30,7 @@ module "api" {
   stage                   = "prod"
   embeddings_urls = {
     ja = "https://${module.reference_assets.distribution_domain_name}/embeddings/ja-vocab.embed"
+    my = "https://${module.reference_assets.distribution_domain_name}/embeddings/my-vocab.embed"
     pl = "https://${module.reference_assets.distribution_domain_name}/embeddings/pl-vocab.embed"
   }
   embed_model_id = "cohere.embed-multilingual-v3"
@@ -38,7 +39,8 @@ module "api" {
 module "reference_assets" {
   source = "../../modules/reference-assets"
 
-  name = local.name
+  name           = local.name
+  allowed_origin = local.frontend_origin
 }
 
 module "frontend" {
@@ -54,5 +56,6 @@ module "frontend" {
   connect_sources = [
     local.cognito_api_origin,
     module.api.api_url,
+    "https://${module.reference_assets.distribution_domain_name}",
   ]
 }

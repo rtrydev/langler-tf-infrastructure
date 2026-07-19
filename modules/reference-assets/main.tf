@@ -34,6 +34,42 @@ resource "aws_cloudfront_origin_access_control" "assets" {
   signing_protocol                  = "sigv4"
 }
 
+resource "aws_cloudfront_response_headers_policy" "assets" {
+  name = "${var.name}-reference-assets"
+
+  cors_config {
+    access_control_allow_credentials = false
+
+    access_control_allow_headers {
+      items = ["*"]
+    }
+
+    access_control_allow_methods {
+      items = ["GET", "HEAD"]
+    }
+
+    access_control_allow_origins {
+      items = [var.allowed_origin]
+    }
+
+    access_control_expose_headers {
+      items = ["ETag"]
+    }
+
+    access_control_max_age_sec = 86400
+    origin_override            = true
+  }
+
+  security_headers_config {
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      include_subdomains         = true
+      override                   = true
+      preload                    = true
+    }
+  }
+}
+
 resource "aws_cloudfront_distribution" "assets" {
   #checkov:skip=CKV_AWS_86:CloudFront access logging requires another S3 bucket and is deferred until traffic warrants its cost
   #checkov:skip=CKV_AWS_68:AWS WAF has an always-on cost disproportionate to this invite-only personal application
@@ -54,12 +90,13 @@ resource "aws_cloudfront_distribution" "assets" {
   }
 
   default_cache_behavior {
-    target_origin_id       = "s3-${aws_s3_bucket.assets.id}"
-    viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = ["GET", "HEAD"]
-    cached_methods         = ["GET", "HEAD"]
-    compress               = true
-    cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+    target_origin_id           = "s3-${aws_s3_bucket.assets.id}"
+    viewer_protocol_policy     = "redirect-to-https"
+    allowed_methods            = ["GET", "HEAD"]
+    cached_methods             = ["GET", "HEAD"]
+    compress                   = true
+    cache_policy_id            = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.assets.id
   }
 
   restrictions {

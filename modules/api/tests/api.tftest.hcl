@@ -60,7 +60,7 @@ run "plans_reference_routes_with_scoped_permissions" {
   command = plan
 
   assert {
-    condition     = keys(aws_apigatewayv2_route.authenticated) == ["agent_tokens_create", "agent_tokens_list", "agent_tokens_revoke", "assessment_answers_create", "assessments_create", "assessments_get", "assessments_list", "hello", "lesson_results_create", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "lessons_topics", "profile_levels", "progress_summary", "reference_grammar", "reference_scripts", "reference_vocab", "reviews_due", "reviews_grade"]
+    condition     = keys(aws_apigatewayv2_route.authenticated) == ["agent_tokens_create", "agent_tokens_list", "agent_tokens_revoke", "assessment_answers_create", "assessments_create", "assessments_get", "assessments_list", "hello", "lesson_results_create", "lessons_delete", "lessons_get", "lessons_import", "lessons_list", "lessons_prompt", "lessons_topics", "profile_levels", "progress_summary", "reference_grammar", "reference_readings", "reference_scripts", "reference_vocab", "reviews_due", "reviews_grade"]
     error_message = "The route map must contain the authenticated status, reference, lesson, review, progress, assessment, and token routes."
   }
 
@@ -166,7 +166,7 @@ run "plans_separate_uncached_machine_authorizer" {
   command = plan
 
   assert {
-    condition     = keys(aws_apigatewayv2_route.machine) == ["lessons_import", "reference_grammar", "reference_scripts", "reference_vocab"]
+    condition     = keys(aws_apigatewayv2_route.machine) == ["lessons_import", "reference_grammar", "reference_readings", "reference_scripts", "reference_vocab"]
     error_message = "The machine API must expose only reference reads and lesson import."
   }
 
