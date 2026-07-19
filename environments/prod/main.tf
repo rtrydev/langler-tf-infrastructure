@@ -14,6 +14,10 @@ module "storage" {
   source = "../../modules/storage"
 
   table_name = local.name
+
+  # Temporary bulk-load window for the topics reference reload; revert to the
+  # free-tier default (5) right after the ETL load finishes.
+  write_capacity = 200
 }
 
 module "api" {
