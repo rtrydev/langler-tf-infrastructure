@@ -62,6 +62,42 @@ directly in the Cognito console or via `aws cognito-idp admin-disable-user`
 (no wrapper script exists for this yet; use the pool id from
 `terraform -chdir=environments/prod output -raw cognito_user_pool_id`).
 
+## Provisioning the end-to-end test user
+
+The browser suite in `langler-e2e-playwright` signs in as a dedicated Cognito
+user created entirely by Terraform — no console step, no invite email. Set the
+address and apply:
+
+```sh
+export TF_VAR_e2e_user_email="e2e@rtrydev.com"
+./scripts/deploy.sh            # or: terraform -chdir=environments/prod apply
+```
+
+`modules/auth` then creates an `aws_cognito_user` with a permanent 24-char
+`random_password` (`message_action = SUPPRESS`, `email_verified = true`), so it
+lands directly in `CONFIRMED` — signing in through the UI works immediately.
+Leaving `e2e_user_email` empty (the default) creates no user. Hand the runner
+its credentials from the outputs:
+
+```sh
+terraform -chdir=environments/prod output -raw e2e_user_email
+terraform -chdir=environments/prod output -raw e2e_user_password   # sensitive
+```
+
+The password lives in Terraform state (readable by anyone with state access) —
+an accepted trade-off for a user that owns only throwaway `e2e-`-prefixed data.
+Rotate it with a targeted replace:
+
+```sh
+terraform -chdir=environments/prod apply -replace='module.auth.random_password.e2e[0]'
+```
+
+After a deploy, run the suite against `https://langler.rtrydev.com` per
+`langler-e2e-playwright/README.md` (it reads `e2e_user_email`,
+`e2e_user_password`, `api_url`, `machine_api_url`, and `cognito_client_id` from
+these outputs). A full run creates and deletes its own data; nothing
+`e2e-`-prefixed should remain afterward.
+
 ## Refreshing reference data (ETL)
 
 Reference vocabulary, grammar, scripts, and readings for each language are

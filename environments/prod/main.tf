@@ -7,7 +7,8 @@ locals {
 module "auth" {
   source = "../../modules/auth"
 
-  name = local.name
+  name           = local.name
+  e2e_user_email = var.e2e_user_email
 }
 
 module "storage" {

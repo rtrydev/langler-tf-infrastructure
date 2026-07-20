@@ -47,3 +47,14 @@ output "table_name" {
   description = "DynamoDB single-table name"
   value       = module.storage.table_name
 }
+
+output "e2e_user_email" {
+  description = "Username of the Terraform-managed E2E test user, consumed by the E2E runner"
+  value       = module.auth.e2e_user_email
+}
+
+output "e2e_user_password" {
+  description = "Password of the Terraform-managed E2E test user, consumed by the E2E runner"
+  value       = module.auth.e2e_user_password
+  sensitive   = true
+}
