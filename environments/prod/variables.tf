@@ -62,3 +62,24 @@ variable "authorizer_package_path" {
     error_message = "authorizer_package_path must identify a zip archive."
   }
 }
+
+variable "alarm_email" {
+  description = "Email address that receives CloudWatch alarm and budget notifications"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$", var.alarm_email))
+    error_message = "alarm_email must be a valid email address."
+  }
+}
+
+variable "monthly_budget_usd" {
+  description = "Monthly AWS cost budget in USD; a notification fires at 85% actual and 100% forecasted spend"
+  type        = string
+  default     = "10"
+
+  validation {
+    condition     = can(tonumber(var.monthly_budget_usd)) && tonumber(var.monthly_budget_usd) > 0
+    error_message = "monthly_budget_usd must be a positive number expressed as a string."
+  }
+}

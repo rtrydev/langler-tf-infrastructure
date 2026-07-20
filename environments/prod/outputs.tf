@@ -47,3 +47,8 @@ output "table_name" {
   description = "DynamoDB single-table name"
   value       = module.storage.table_name
 }
+
+output "alerts_topic_arn" {
+  description = "SNS topic ARN carrying alarm and budget notifications"
+  value       = module.monitoring.alerts_topic_arn
+}

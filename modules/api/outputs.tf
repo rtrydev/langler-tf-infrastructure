@@ -22,3 +22,13 @@ output "authorizer_lambda_name" {
   description = "Deployed machine-token authorizer Lambda function name"
   value       = aws_lambda_function.authorizer.function_name
 }
+
+output "api_id" {
+  description = "Browser HTTP API id, for CloudWatch API Gateway alarm dimensions"
+  value       = aws_apigatewayv2_api.api.id
+}
+
+output "machine_api_id" {
+  description = "Machine-token HTTP API id, for CloudWatch API Gateway alarm dimensions"
+  value       = aws_apigatewayv2_api.machine.id
+}

@@ -1,6 +1,6 @@
 # global
 
-Account-level resources that are not per-environment. This module currently manages the S3 state bucket.
+Account-level resources that are not per-environment. This module manages the S3 state bucket and the account-wide API Gateway CloudWatch logging role.
 
 ## State bucket
 
@@ -11,6 +11,10 @@ Account-level resources that are not per-environment. This module currently mana
 - **All public access blocked.**
 - **Native S3 state locking** — consumers set `use_lockfile = true` in their backend. There is deliberately no DynamoDB lock table; that mechanism is deprecated.
 - `prevent_destroy` — the bucket holds the source of truth for the whole account.
+
+## API Gateway CloudWatch role
+
+`aws_api_gateway_account.this` is a singleton per account/region: it tells API Gateway (both REST and HTTP APIs, across every environment) which IAM role to assume when writing access logs to CloudWatch Logs. It belongs here rather than in `modules/api` so that a future second environment does not fight over the same account-wide setting from two separate Terraform states.
 
 ## Inputs
 

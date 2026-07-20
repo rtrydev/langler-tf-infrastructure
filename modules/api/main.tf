@@ -166,6 +166,16 @@ resource "aws_iam_role_policy" "lambda_reference_read" {
   })
 }
 
+resource "aws_iam_role_policy_attachment" "lambda_xray" {
+  role       = aws_iam_role.lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "authorizer_xray" {
+  role       = aws_iam_role.authorizer.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+}
+
 resource "aws_iam_role_policy" "lambda_lesson_store" {
   name = "dynamodb-lessons"
   role = aws_iam_role.lambda.id
@@ -197,6 +207,20 @@ resource "aws_cloudwatch_log_group" "authorizer" {
   #checkov:skip=CKV_AWS_158:KMS encryption has recurring request costs and logs contain no request bodies, tokens, or personal data
   #checkov:skip=CKV_AWS_338:Fourteen-day retention limits storage cost while retaining enough diagnostics for this personal application
   name              = "/aws/lambda/${var.name}-machine-authorizer"
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "api_access" {
+  #checkov:skip=CKV_AWS_158:KMS encryption has recurring request costs and access logs contain no request bodies, tokens, or personal data
+  #checkov:skip=CKV_AWS_338:Fourteen-day retention limits storage cost while retaining enough diagnostics for this personal application
+  name              = "/aws/apigateway/${var.name}-api-access"
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "machine_access" {
+  #checkov:skip=CKV_AWS_158:KMS encryption has recurring request costs and access logs contain no request bodies, tokens, or personal data
+  #checkov:skip=CKV_AWS_338:Fourteen-day retention limits storage cost while retaining enough diagnostics for this personal application
+  name              = "/aws/apigateway/${var.name}-machine-access"
   retention_in_days = 14
 }
 
@@ -259,7 +283,6 @@ resource "aws_lambda_function" "api" {
   #checkov:skip=CKV_AWS_117:The endpoint accesses only public AWS control planes and does not require a VPC
   #checkov:skip=CKV_AWS_173:Only the non-sensitive stage, table name, embedding index URLs, and model id are supplied as environment variables
   #checkov:skip=CKV_AWS_272:Code signing adds operational overhead that is disproportionate for this owner-built personal application
-  #checkov:skip=CKV_AWS_50:X-Ray tracing adds cost and is deferred to the dedicated observability task
   function_name                  = "${var.name}-api"
   role                           = aws_iam_role.lambda.arn
   filename                       = var.lambda_package_path
@@ -270,6 +293,10 @@ resource "aws_lambda_function" "api" {
   memory_size                    = 2048
   timeout                        = 29
   reserved_concurrent_executions = 5
+
+  tracing_config {
+    mode = "Active"
+  }
 
   environment {
     variables = {
@@ -288,7 +315,6 @@ resource "aws_lambda_function" "authorizer" {
   #checkov:skip=CKV_AWS_117:The function accesses DynamoDB through the public AWS control plane and does not require a VPC
   #checkov:skip=CKV_AWS_173:The only environment value is a non-sensitive DynamoDB table name
   #checkov:skip=CKV_AWS_272:Code signing adds disproportionate operational overhead for this personal application
-  #checkov:skip=CKV_AWS_50:X-Ray tracing is deferred to the dedicated observability task
   function_name                  = "${var.name}-machine-authorizer"
   role                           = aws_iam_role.authorizer.arn
   filename                       = var.authorizer_package_path
@@ -299,6 +325,10 @@ resource "aws_lambda_function" "authorizer" {
   memory_size                    = 128
   timeout                        = 5
   reserved_concurrent_executions = 5
+
+  tracing_config {
+    mode = "Active"
+  }
 
   environment {
     variables = { TABLE_NAME = var.table_name }
@@ -393,7 +423,6 @@ moved {
 }
 
 resource "aws_apigatewayv2_stage" "default" {
-  #checkov:skip=CKV_AWS_76:API access logs add duplicate request logging and are deferred to the dedicated observability task
   api_id      = aws_apigatewayv2_api.api.id
   name        = "$default"
   auto_deploy = true
@@ -402,10 +431,31 @@ resource "aws_apigatewayv2_stage" "default" {
     throttling_burst_limit = 10
     throttling_rate_limit  = 5
   }
+
+  route_settings {
+    route_key                = local.human_routes.lessons_import.route_key
+    throttling_burst_limit   = 5
+    throttling_rate_limit    = 2
+    detailed_metrics_enabled = true
+  }
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_access.arn
+    format = jsonencode({
+      requestId               = "$context.requestId"
+      ip                      = "$context.identity.sourceIp"
+      requestTime             = "$context.requestTime"
+      httpMethod              = "$context.httpMethod"
+      routeKey                = "$context.routeKey"
+      status                  = "$context.status"
+      responseLength          = "$context.responseLength"
+      integrationLatency      = "$context.integrationLatency"
+      integrationErrorMessage = "$context.integrationErrorMessage"
+    })
+  }
 }
 
 resource "aws_apigatewayv2_stage" "machine" {
-  #checkov:skip=CKV_AWS_76:API access logs are deferred to the dedicated observability task
   api_id      = aws_apigatewayv2_api.machine.id
   name        = "$default"
   auto_deploy = true
@@ -413,6 +463,28 @@ resource "aws_apigatewayv2_stage" "machine" {
   default_route_settings {
     throttling_burst_limit = 20
     throttling_rate_limit  = 10
+  }
+
+  route_settings {
+    route_key                = local.machine_routes.lessons_import.route_key
+    throttling_burst_limit   = 5
+    throttling_rate_limit    = 2
+    detailed_metrics_enabled = true
+  }
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.machine_access.arn
+    format = jsonencode({
+      requestId               = "$context.requestId"
+      ip                      = "$context.identity.sourceIp"
+      requestTime             = "$context.requestTime"
+      httpMethod              = "$context.httpMethod"
+      routeKey                = "$context.routeKey"
+      status                  = "$context.status"
+      responseLength          = "$context.responseLength"
+      integrationLatency      = "$context.integrationLatency"
+      integrationErrorMessage = "$context.integrationErrorMessage"
+    })
   }
 }
 

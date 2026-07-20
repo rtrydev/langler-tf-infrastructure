@@ -36,6 +36,19 @@ module "api" {
   embed_model_id = "cohere.embed-multilingual-v3"
 }
 
+module "monitoring" {
+  source = "../../modules/monitoring"
+
+  name                     = local.name
+  alarm_email              = var.alarm_email
+  monthly_budget_usd       = var.monthly_budget_usd
+  table_name               = module.storage.table_name
+  api_function_name        = module.api.lambda_name
+  authorizer_function_name = module.api.authorizer_lambda_name
+  http_api_id              = module.api.api_id
+  machine_api_id           = module.api.machine_api_id
+}
+
 module "reference_assets" {
   source = "../../modules/reference-assets"
 
