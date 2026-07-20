@@ -61,3 +61,28 @@ resource "aws_cognito_user_pool_client" "browser" {
     refresh_token = "days"
   }
 }
+
+resource "random_password" "e2e" {
+  count = var.e2e_user_email == "" ? 0 : 1
+
+  length           = 24
+  min_lower        = 2
+  min_upper        = 2
+  min_numeric      = 2
+  min_special      = 2
+  override_special = "@#%*-_=+.,"
+}
+
+resource "aws_cognito_user" "e2e" {
+  count = var.e2e_user_email == "" ? 0 : 1
+
+  user_pool_id   = aws_cognito_user_pool.users.id
+  username       = var.e2e_user_email
+  password       = random_password.e2e[0].result
+  message_action = "SUPPRESS"
+
+  attributes = {
+    email          = var.e2e_user_email
+    email_verified = "true"
+  }
+}

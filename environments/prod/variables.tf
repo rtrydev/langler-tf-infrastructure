@@ -63,6 +63,17 @@ variable "authorizer_package_path" {
   }
 }
 
+variable "e2e_user_email" {
+  description = "Email/username for the Terraform-managed end-to-end test user; empty creates no user"
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.e2e_user_email == "" || can(regex("^[^@ ]+@[^@ ]+\\.[^@ ]+$", var.e2e_user_email))
+    error_message = "e2e_user_email must be empty or a valid email address."
+  }
+}
+
 variable "monthly_budget_usd" {
   description = "Monthly AWS cost budget in USD, visible in the AWS Budgets console; no notification is sent"
   type        = string
