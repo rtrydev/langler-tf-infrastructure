@@ -75,6 +75,11 @@ locals {
       statement_id    = "AllowApiGatewayInvokeProgressSummary"
       permission_path = "GET/progress"
     }
+    glossary_list = {
+      route_key       = "GET /glossary"
+      statement_id    = "AllowApiGatewayInvokeGlossaryList"
+      permission_path = "GET/glossary"
+    }
     assessments_create = {
       route_key       = "POST /assessments"
       statement_id    = "AllowApiGatewayInvokeAssessmentsCreate"
