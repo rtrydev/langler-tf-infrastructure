@@ -19,7 +19,7 @@ npm --prefix "$UI_ROOT" test
 
 terraform -chdir="$INFRA_ROOT" fmt -check -recursive
 
-for directory in global modules/api modules/auth modules/reference-assets modules/storage environments/prod; do
+for directory in global modules/api modules/auth modules/monitoring modules/reference-assets modules/storage environments/prod; do
   terraform -chdir="$INFRA_ROOT/$directory" init -backend=false -input=false -reconfigure
   terraform -chdir="$INFRA_ROOT/$directory" validate
 done
@@ -30,6 +30,6 @@ done
   checkov -d .
 )
 
-for directory in global modules/api modules/auth modules/frontend modules/reference-assets modules/storage; do
+for directory in global modules/api modules/auth modules/frontend modules/monitoring modules/reference-assets modules/storage; do
   terraform -chdir="$INFRA_ROOT/$directory" test
 done
