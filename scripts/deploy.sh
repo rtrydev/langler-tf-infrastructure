@@ -31,11 +31,6 @@ if [[ ! "${LANGLER_AWS_ACCOUNT_ID:-}" =~ ^[0-9]{12}$ ]]; then
   exit 1
 fi
 
-if [[ -z "${LANGLER_ALARM_EMAIL:-}" ]]; then
-  printf 'Set LANGLER_ALARM_EMAIL to the address that should receive CloudWatch alarm and budget notifications.\n' >&2
-  exit 1
-fi
-
 if ! AWS_ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text 2>&1)"; then
   printf 'AWS authentication failed: %s\n' "$AWS_ACCOUNT_ID" >&2
   printf 'Complete your AWS login flow and try again.\n' >&2
@@ -55,7 +50,6 @@ fi
 printf 'AWS identity: %s\n' "$AWS_IDENTITY"
 
 export TF_VAR_expected_aws_account_id="$LANGLER_AWS_ACCOUNT_ID"
-export TF_VAR_alarm_email="$LANGLER_ALARM_EMAIL"
 TF_PLAN_DIR="$(mktemp -d "${TMPDIR:-/tmp}/langler-tfplan.XXXXXX")"
 TF_PLAN="$TF_PLAN_DIR/tfplan"
 terraform -chdir="$TF_DIR" init -input=false

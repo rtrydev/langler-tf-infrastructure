@@ -8,18 +8,8 @@ variable "name" {
   }
 }
 
-variable "alarm_email" {
-  description = "Email address subscribed to alarm and budget notifications"
-  type        = string
-
-  validation {
-    condition     = can(regex("^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$", var.alarm_email))
-    error_message = "alarm_email must be a valid email address."
-  }
-}
-
 variable "monthly_budget_usd" {
-  description = "Monthly AWS cost budget in USD; a notification fires at 85% actual and 100% forecasted spend"
+  description = "Monthly AWS cost budget in USD, visible in the AWS Budgets console; no notification is sent"
   type        = string
   default     = "10"
 

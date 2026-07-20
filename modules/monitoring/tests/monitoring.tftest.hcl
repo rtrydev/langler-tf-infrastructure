@@ -2,7 +2,6 @@ mock_provider "aws" {}
 
 variables {
   name                     = "langler-prod"
-  alarm_email              = "owner@example.com"
   table_name               = "langler-prod"
   api_function_name        = "langler-prod-api"
   authorizer_function_name = "langler-prod-machine-authorizer"
@@ -39,9 +38,9 @@ run "plans_lambda_and_api_gateway_alarms" {
         aws_cloudwatch_metric_alarm.machine_api_5xx,
         aws_cloudwatch_metric_alarm.dynamodb_read_throttled,
         aws_cloudwatch_metric_alarm.dynamodb_write_throttled,
-      ] : length(alarm.alarm_actions) == 1 && length(alarm.ok_actions) == 1
+      ] : alarm.alarm_actions == null && alarm.ok_actions == null
     ])
-    error_message = "Every alarm must notify exactly one action (the shared alerts SNS topic)."
+    error_message = "Alarms must stay console-visible only; no notification action for this invite-only personal app."
   }
 
   assert {
@@ -64,7 +63,7 @@ run "plans_dynamodb_capacity_alarms_with_default_threshold" {
   }
 }
 
-run "plans_monthly_budget_with_percentage_notifications" {
+run "plans_monthly_budget_visible_with_no_notifications" {
   command = plan
 
   assert {
@@ -73,17 +72,8 @@ run "plans_monthly_budget_with_percentage_notifications" {
   }
 
   assert {
-    condition = anytrue([
-      for n in aws_budgets_budget.monthly.notification : n.threshold == 85 && n.notification_type == "ACTUAL" && contains(n.subscriber_email_addresses, var.alarm_email)
-    ])
-    error_message = "The budget must notify the owner email at 85% actual spend."
-  }
-
-  assert {
-    condition = anytrue([
-      for n in aws_budgets_budget.monthly.notification : n.threshold == 100 && n.notification_type == "FORECASTED"
-    ])
-    error_message = "The budget must also notify on 100% forecasted spend."
+    condition     = length(aws_budgets_budget.monthly.notification) == 0
+    error_message = "The budget must not send notifications; it exists only to be visible in the AWS Budgets console."
   }
 }
 
@@ -95,14 +85,4 @@ run "rejects_non_positive_budget" {
   }
 
   expect_failures = [var.monthly_budget_usd]
-}
-
-run "rejects_invalid_email" {
-  command = plan
-
-  variables {
-    alarm_email = "not-an-email"
-  }
-
-  expect_failures = [var.alarm_email]
 }

@@ -40,7 +40,6 @@ module "monitoring" {
   source = "../../modules/monitoring"
 
   name                     = local.name
-  alarm_email              = var.alarm_email
   monthly_budget_usd       = var.monthly_budget_usd
   table_name               = module.storage.table_name
   api_function_name        = module.api.lambda_name

@@ -10,7 +10,7 @@ All AWS infrastructure lives here, following the myangler-web pattern: Next.js s
 - `modules/auth` — invitation-only Cognito pool and browser client.
 - `modules/api` — Cognito browser API, scoped-token machine API, and arm64 API/authorizer Lambdas.
 - `modules/storage` — on-demand DynamoDB single table.
-- `modules/monitoring` — CloudWatch alarms and an AWS Budgets cost guardrail.
+- `modules/monitoring` — console-visible CloudWatch alarms and an AWS Budgets cost guardrail (no notifications).
 - `environments/prod` — production composition and S3 backend.
 - `global` — Terraform state bucket and the account-wide API Gateway CloudWatch logging role.
 
@@ -26,11 +26,11 @@ A human runs the checks locally, reviews the saved plan, and applies it from the
 
 ## Deploy
 
-From this repository, log in with the AWS CLI, set `LANGLER_AWS_ACCOUNT_ID` to the expected 12-digit account and `LANGLER_ALARM_EMAIL` to the address that should receive CloudWatch alarm and AWS Budgets notifications, and run `./scripts/deploy.sh`. The AWS CLI and Terraform use the active shared profile directly. The script runs `./scripts/check.sh`, verifies the active AWS account, produces a private temporary Terraform plan, pauses for explicit human review, applies that exact plan, builds and uploads the frontend, and invalidates CloudFront. The temporary plan is cleared on every exit path.
+From this repository, log in with the AWS CLI, set `LANGLER_AWS_ACCOUNT_ID` to the expected 12-digit account, and run `./scripts/deploy.sh`. The AWS CLI and Terraform use the active shared profile directly. The script runs `./scripts/check.sh`, verifies the active AWS account, produces a private temporary Terraform plan, pauses for explicit human review, applies that exact plan, builds and uploads the frontend, and invalidates CloudFront. The temporary plan is cleared on every exit path.
 
 Provision an invited account after the first deploy with `./scripts/create-user.sh learner@example.com`. Cognito emails the temporary credential and requires the user to choose a permanent password on first sign-in.
 
-See `docs/owner-runbook.md` for the full set of owner operations: deploying, rolling back, provisioning users, refreshing reference data, rotating agent tokens, and reading the alarms.
+See `docs/owner-runbook.md` for the full set of owner operations: deploying, rolling back, provisioning users, refreshing reference data, rotating agent tokens, and reading the alarms in the CloudWatch console.
 
 ## State
 

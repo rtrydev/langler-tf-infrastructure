@@ -1,14 +1,3 @@
-resource "aws_sns_topic" "alerts" {
-  #checkov:skip=CKV_AWS_26:SSE-KMS adds per-request cost; alarm names and budget summaries carry no sensitive data
-  name = "${var.name}-alerts"
-}
-
-resource "aws_sns_topic_subscription" "alerts_email" {
-  topic_arn = aws_sns_topic.alerts.arn
-  protocol  = "email"
-  endpoint  = var.alarm_email
-}
-
 resource "aws_cloudwatch_metric_alarm" "api_lambda_errors" {
   alarm_name          = "${var.name}-api-lambda-errors"
   alarm_description   = "The api Lambda returned at least one error in a 5-minute window."
@@ -21,8 +10,6 @@ resource "aws_cloudwatch_metric_alarm" "api_lambda_errors" {
   threshold           = 1
   comparison_operator = "GreaterThanOrEqualToThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "api_lambda_throttles" {
@@ -37,8 +24,6 @@ resource "aws_cloudwatch_metric_alarm" "api_lambda_throttles" {
   threshold           = 1
   comparison_operator = "GreaterThanOrEqualToThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "authorizer_lambda_errors" {
@@ -53,8 +38,6 @@ resource "aws_cloudwatch_metric_alarm" "authorizer_lambda_errors" {
   threshold           = 1
   comparison_operator = "GreaterThanOrEqualToThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "authorizer_lambda_throttles" {
@@ -69,8 +52,6 @@ resource "aws_cloudwatch_metric_alarm" "authorizer_lambda_throttles" {
   threshold           = 1
   comparison_operator = "GreaterThanOrEqualToThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "human_api_5xx" {
@@ -85,8 +66,6 @@ resource "aws_cloudwatch_metric_alarm" "human_api_5xx" {
   threshold           = 1
   comparison_operator = "GreaterThanOrEqualToThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "machine_api_5xx" {
@@ -101,8 +80,6 @@ resource "aws_cloudwatch_metric_alarm" "machine_api_5xx" {
   threshold           = 1
   comparison_operator = "GreaterThanOrEqualToThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "dynamodb_read_throttled" {
@@ -117,8 +94,6 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_read_throttled" {
   threshold           = 1
   comparison_operator = "GreaterThanOrEqualToThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "dynamodb_write_throttled" {
@@ -133,8 +108,6 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_write_throttled" {
   threshold           = 1
   comparison_operator = "GreaterThanOrEqualToThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "dynamodb_consumed_read_capacity" {
@@ -149,8 +122,6 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_consumed_read_capacity" {
   threshold           = var.dynamodb_consumed_capacity_threshold
   comparison_operator = "GreaterThanThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "dynamodb_consumed_write_capacity" {
@@ -165,8 +136,6 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_consumed_write_capacity" {
   threshold           = var.dynamodb_consumed_capacity_threshold
   comparison_operator = "GreaterThanThreshold"
   treat_missing_data  = "notBreaching"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-  ok_actions          = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_budgets_budget" "monthly" {
@@ -175,20 +144,4 @@ resource "aws_budgets_budget" "monthly" {
   limit_amount = var.monthly_budget_usd
   limit_unit   = "USD"
   time_unit    = "MONTHLY"
-
-  notification {
-    comparison_operator        = "GREATER_THAN"
-    threshold                  = 85
-    threshold_type             = "PERCENTAGE"
-    notification_type          = "ACTUAL"
-    subscriber_email_addresses = [var.alarm_email]
-  }
-
-  notification {
-    comparison_operator        = "GREATER_THAN"
-    threshold                  = 100
-    threshold_type             = "PERCENTAGE"
-    notification_type          = "FORECASTED"
-    subscriber_email_addresses = [var.alarm_email]
-  }
 }

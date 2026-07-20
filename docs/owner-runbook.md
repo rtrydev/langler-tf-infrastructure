@@ -11,7 +11,6 @@ assume).
 
 ```sh
 export LANGLER_AWS_ACCOUNT_ID=<12-digit account id>
-export LANGLER_ALARM_EMAIL=<address for CloudWatch alarm and budget notifications>
 ./scripts/deploy.sh
 ```
 
@@ -121,22 +120,20 @@ gone.
 
 ## Watching for trouble
 
-`environments/prod` provisions a `monitoring` module (SNS topic subscribed to
-`alarm_email`) that pages you by email on:
+`environments/prod` provisions a `monitoring` module with CloudWatch alarms
+and an AWS Budgets guardrail. Nothing here sends a notification — this is a
+single-owner, invite-only app with no on-call, so every alarm and the budget
+exist purely to be checked in the AWS console, not to page anyone:
 
-- Any Lambda error or throttle (api or machine-authorizer function).
-- Any 5xx response from either the browser or machine-token API.
-- Any DynamoDB read/write throttling event.
-- A DynamoDB consumed-capacity spike (`dynamodb_consumed_capacity_threshold`,
-  default 1000 units summed over 5 minutes) — a cost/usage signal distinct
-  from throttling, since the table runs on-demand.
-- The monthly AWS Budgets guardrail (`monthly_budget_usd`, default $10)
-  crossing 85% of actual spend or 100% of forecasted spend for the month.
-
-The first apply that creates the SNS topic sends `alarm_email` a
-subscription-confirmation email — click it, or no notification ever arrives
-despite the alarms firing correctly. AWS Budgets notifications, by contrast,
-email `alarm_email` directly and need no such confirmation.
+- **CloudWatch → Alarms**: Lambda errors/throttles (api and machine-authorizer
+  functions), 5xx responses from either HTTP API, DynamoDB read/write
+  throttling events, and a DynamoDB consumed-capacity spike
+  (`dynamodb_consumed_capacity_threshold`, default 1000 units summed over 5
+  minutes — a cost/usage signal distinct from throttling, since the table
+  runs on-demand). All alarms treat missing data as "not breaching," since no
+  traffic is the expected steady state, not a failure.
+- **AWS Budgets** (`monthly_budget_usd`, default $10): shows spend-to-date
+  and forecast for the month, console-only.
 
 CloudWatch Logs for both Lambdas retain 14 days; API Gateway access logs
 (also 14 days) let you correlate a specific request across both log groups
