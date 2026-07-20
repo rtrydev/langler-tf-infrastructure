@@ -297,7 +297,7 @@ resource "aws_lambda_function" "api" {
   architectures                  = ["arm64"]
   memory_size                    = 2048
   timeout                        = 29
-  reserved_concurrent_executions = 5
+  reserved_concurrent_executions = 25
 
   tracing_config {
     mode = "Active"
@@ -329,7 +329,7 @@ resource "aws_lambda_function" "authorizer" {
   architectures                  = ["arm64"]
   memory_size                    = 128
   timeout                        = 5
-  reserved_concurrent_executions = 5
+  reserved_concurrent_executions = 25
 
   tracing_config {
     mode = "Active"
@@ -433,14 +433,14 @@ resource "aws_apigatewayv2_stage" "default" {
   auto_deploy = true
 
   default_route_settings {
-    throttling_burst_limit = 10
-    throttling_rate_limit  = 5
+    throttling_burst_limit = 50
+    throttling_rate_limit  = 25
   }
 
   route_settings {
     route_key                = local.human_routes.lessons_import.route_key
-    throttling_burst_limit   = 5
-    throttling_rate_limit    = 2
+    throttling_burst_limit   = 25
+    throttling_rate_limit    = 10
     detailed_metrics_enabled = true
   }
 
@@ -466,14 +466,14 @@ resource "aws_apigatewayv2_stage" "machine" {
   auto_deploy = true
 
   default_route_settings {
-    throttling_burst_limit = 20
-    throttling_rate_limit  = 10
+    throttling_burst_limit = 100
+    throttling_rate_limit  = 50
   }
 
   route_settings {
     route_key                = local.machine_routes.lessons_import.route_key
-    throttling_burst_limit   = 5
-    throttling_rate_limit    = 2
+    throttling_burst_limit   = 25
+    throttling_rate_limit    = 10
     detailed_metrics_enabled = true
   }
 
