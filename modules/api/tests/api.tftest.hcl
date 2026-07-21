@@ -51,8 +51,21 @@ run "plans_authenticated_arm64_api" {
   }
 
   assert {
-    condition     = length(aws_apigatewayv2_api.api.cors_configuration[0].allow_origins) == 1
-    error_message = "CORS must allow exactly one frontend origin."
+    condition     = length(aws_apigatewayv2_api.api.cors_configuration[0].allow_origins) == 1 && contains(aws_apigatewayv2_api.api.cors_configuration[0].allow_origins, "https://langler.example.com")
+    error_message = "CORS must allow only the primary frontend origin when no extras are set."
+  }
+}
+
+run "plans_cors_with_additional_origins" {
+  command = plan
+
+  variables {
+    additional_allowed_origins = ["http://localhost:3000"]
+  }
+
+  assert {
+    condition     = length(aws_apigatewayv2_api.api.cors_configuration[0].allow_origins) == 2 && contains(aws_apigatewayv2_api.api.cors_configuration[0].allow_origins, "https://langler.example.com") && contains(aws_apigatewayv2_api.api.cors_configuration[0].allow_origins, "http://localhost:3000")
+    error_message = "CORS must append additional_allowed_origins to the primary origin."
   }
 }
 

@@ -85,8 +85,9 @@ aws s3 sync "$UI_OUT" "s3://$FRONTEND_BUCKET" \
   --exclude "_next/static/*" \
   --cache-control "public, max-age=60, must-revalidate"
 
+# No --delete here: hashed assets from previous builds must stay available so
+# already-open sessions can still lazy-load their route chunks after a deploy.
 aws s3 sync "$UI_OUT/_next/static" "s3://$FRONTEND_BUCKET/_next/static" \
-  --delete \
   --cache-control "public, max-age=31536000, immutable"
 
 aws cloudfront create-invalidation \

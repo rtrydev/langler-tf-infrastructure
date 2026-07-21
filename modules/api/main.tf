@@ -350,7 +350,7 @@ resource "aws_apigatewayv2_api" "api" {
     allow_credentials = false
     allow_headers     = ["authorization", "content-type", "idempotency-key"]
     allow_methods     = ["GET", "POST", "DELETE"]
-    allow_origins     = [var.allowed_origin]
+    allow_origins     = concat([var.allowed_origin], var.additional_allowed_origins)
     max_age           = 3600
   }
 }

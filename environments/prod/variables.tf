@@ -66,7 +66,7 @@ variable "authorizer_package_path" {
 variable "e2e_user_email" {
   description = "Email/username for the Terraform-managed end-to-end test user; empty creates no user"
   type        = string
-  default     = ""
+  default     = "e2e@rtrydev.com"
 
   validation {
     condition     = var.e2e_user_email == "" || can(regex("^[^@ ]+@[^@ ]+\\.[^@ ]+$", var.e2e_user_email))

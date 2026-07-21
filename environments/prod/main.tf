@@ -2,6 +2,7 @@ locals {
   name               = "langler-prod"
   frontend_origin    = "https://${var.domain_name}"
   cognito_api_origin = "https://cognito-idp.${var.aws_region}.amazonaws.com"
+  local_dev_origins  = ["http://localhost:3000"]
 }
 
 module "auth" {
@@ -20,15 +21,16 @@ module "storage" {
 module "api" {
   source = "../../modules/api"
 
-  name                    = local.name
-  lambda_package_path     = var.lambda_package_path
-  authorizer_package_path = var.authorizer_package_path
-  jwt_issuer              = module.auth.issuer
-  jwt_audience            = module.auth.client_id
-  allowed_origin          = local.frontend_origin
-  table_name              = module.storage.table_name
-  table_arn               = module.storage.table_arn
-  stage                   = "prod"
+  name                       = local.name
+  lambda_package_path        = var.lambda_package_path
+  authorizer_package_path    = var.authorizer_package_path
+  jwt_issuer                 = module.auth.issuer
+  jwt_audience               = module.auth.client_id
+  allowed_origin             = local.frontend_origin
+  additional_allowed_origins = local.local_dev_origins
+  table_name                 = module.storage.table_name
+  table_arn                  = module.storage.table_arn
+  stage                      = "prod"
   embeddings_urls = {
     ja = "https://${module.reference_assets.distribution_domain_name}/embeddings/ja-vocab.embed"
     my = "https://${module.reference_assets.distribution_domain_name}/embeddings/my-vocab.embed"

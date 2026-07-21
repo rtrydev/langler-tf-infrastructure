@@ -49,12 +49,25 @@ variable "jwt_audience" {
 }
 
 variable "allowed_origin" {
-  description = "Single browser origin allowed by HTTP API CORS"
+  description = "Primary browser origin allowed by HTTP API CORS"
   type        = string
 
   validation {
     condition     = can(regex("^https://[^/]+$", var.allowed_origin))
     error_message = "allowed_origin must be one HTTPS origin without a trailing slash."
+  }
+}
+
+variable "additional_allowed_origins" {
+  description = "Extra browser origins allowed by HTTP API CORS, e.g. a local dev or e2e host (http permitted)"
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition = alltrue([
+      for origin in var.additional_allowed_origins : can(regex("^https?://[^/]+$", origin))
+    ])
+    error_message = "Each additional origin must be an http(s) origin without a trailing slash."
   }
 }
 
