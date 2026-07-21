@@ -60,6 +60,11 @@ locals {
       statement_id    = "AllowApiGatewayInvokeLessonResultsCreate"
       permission_path = "POST/lessons/*/results"
     }
+    lesson_results_list = {
+      route_key       = "GET /lessons/{id}/results"
+      statement_id    = "AllowApiGatewayInvokeLessonResultsList"
+      permission_path = "GET/lessons/*/results"
+    }
     reviews_due = {
       route_key       = "GET /reviews/due"
       statement_id    = "AllowApiGatewayInvokeReviewsDue"
