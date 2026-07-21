@@ -13,7 +13,8 @@ Both Lambdas run with X-Ray active tracing. Both stages emit JSON access logs (r
 | `authorizer_package_path` | `string` | Zip containing the machine-authorizer `bootstrap` |
 | `jwt_issuer` | `string` | Cognito JWT issuer |
 | `jwt_audience` | `string` | Cognito client ID |
-| `allowed_origin` | `string` | Browser origin allowed by CORS |
+| `allowed_origin` | `string` | Primary browser origin allowed by CORS |
+| `additional_allowed_origins` | `list(string)` | Extra browser origins allowed by CORS (e.g. a local dev/e2e host); defaults to `[]` |
 | `table_name` | `string` | DynamoDB table name passed to the Lambda |
 | `table_arn` | `string` | DynamoDB table ARN the Lambda may query |
 | `stage` | `string` | Runtime stage label |
